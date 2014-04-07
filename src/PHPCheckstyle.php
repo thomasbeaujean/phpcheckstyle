@@ -276,7 +276,7 @@ class PHPCheckstyle {
 		}
 		$message = sprintf(PHPCHECKSTYLE_PHP_EXPCEPTION, $errstr);
 		
-		$this->_reporter->writeError($errline, $check, $message, $level);
+		$this->_reporter->writeError($this->lineNumber, $check, $message, $level);
 		
 		/* Don't execute PHP internal error handler */
 		return false;  
@@ -285,13 +285,13 @@ class PHPCheckstyle {
 	/**
 	 * Calls processFile repeatedly for each PHP file that is encountered.
 	 *
-	 * @param String $src a php file or a directory. in case of directory, it
+	 * @param Array[String] $sources an array php file or a directory. in case of directory, it
 	 *        searches for all the php/tpl files within the directory
-	 *        (recursively) and each of those files are processed
+	 *        (recursively) and each of those files are processed.
 	 * @param Array[String] $excludes an array of directories or files that need to be
-	 *        excluded from processing
+	 *        excluded from processing.
 	 */
-	public function processFiles($src, $excludes) {
+	public function processFiles($sources, $excludes) {
 		
 		// Start reporting the results
 		$this->_reporter->start();
@@ -302,13 +302,15 @@ class PHPCheckstyle {
 		
 		$this->_excludeList = $excludes;
 
-		$roots = explode(",", $src);
 		$files = array();
 
-		foreach ($roots as $root) {
-			$files = array_merge($files, $this->_getAllPhpFiles($root, $excludes));
+		// Iterate over the sources to list the files to process
+		foreach ($sources as $src) {
+			$roots = explode(",", $src);
+			foreach ($roots as $root) {
+				$files = array_merge($files, $this->_getAllPhpFiles($root, $excludes));
+			}
 		}
-
 		
 
 		// Start counting the lines
@@ -419,6 +421,8 @@ class PHPCheckstyle {
 		$this->_isModel = false;
 		$this->_isController = false;
 		$this->_isClass = false;
+		
+		$this->_isLineStart = true;
 	}
 
 	/**
@@ -617,7 +621,11 @@ class PHPCheckstyle {
 				break;
 
 			case T_OPEN_TAG:
-				$this->_checkShortOpenTag($token);
+				$this->_processOpenTag($token);
+				break;
+				
+			case T_CLOSE_TAG:
+				$this->_processCloseTag($token);
 				break;
 
 			case T_DO:
@@ -1327,15 +1335,15 @@ class PHPCheckstyle {
 
 			// Add the function name to the list of used functions
 			$this->_usedFunctions[$text] = $text;
+			
+			// Check if the function call is made on an objet of if it's a base PHP function.
+			$isObjectCall = $this->tokenizer->checkPreviousToken(T_OBJECT_OPERATOR);
+			
+			if (!$isObjectCall) {
 
 			// Detect prohibited functions
-			if ($this->_isActive('checkProhibitedFunctions')) {
-				if (in_array($text, $this->_prohibitedFunctions)) {
-					$msg = sprintf(PHPCHECKSTYLE_PROHIBITED_FUNCTION, $text);
-					$this->_writeError('checkProhibitedFunctions', $msg);
-				}
-			}
-
+			$this->_checkProhibitedFunctions($text);
+			
 			// Detect deprecated functions
 			$this->_checkDeprecation($text);
 
@@ -1344,6 +1352,8 @@ class PHPCheckstyle {
 			
 			// Detect replaced functions
 			$this->_checkReplacements($text);
+			
+			}
 
 			// Detect an @ before the function call
 			$this->_checkSilenced($text);
@@ -2152,41 +2162,10 @@ class PHPCheckstyle {
 	 * @param String $text the comparison operator used
 	 */
 	private function _checkStrictCompare($text) {
+		
 		if ($this->_isActive('strictCompare')) {
-
-			$isSearchResult = false;
-
-			// Get the next token
-			$nextTokenInfo = $this->tokenizer->peekNextValidToken($this->tokenizer->getCurrentPosition() + 1);
-			$nextTokenText = $nextTokenInfo->text;
-
-			// Check if next token is a search function
-			$isSearchResult = in_array($nextTokenText, $this->_config->getTestItems('strictCompare'));
-
-			// Or a variable that is the result of a search function
-			if (!empty($this->_variables[$nextTokenText])) {
-				$variable = $this->_variables[$nextTokenText];
-				$isSearchResult = $isSearchResult || $variable->isSearchResult;
-			}
-
-			// Get the token before
-			$previousToken = $this->tokenizer->peekPrvsValidToken($this->tokenizer->getCurrentPosition());
-			$previousTokenText = $previousToken->text;
-
-			// Check if previous token is a search function
-			$isSearchResult = $isSearchResult || in_array($previousTokenText, $this->_config->getTestItems('strictCompare'));
-
-			// Or a variable that is the result of a search function
-			if (!empty($this->_variables[$previousTokenText])) {
-				$variable = $this->_variables[$previousTokenText];
-				$isSearchResult = $isSearchResult || $variable->isSearchResult;
-			}
-
-			// If one the 2 compared item is such a variable or directly a listed function
-			if ($isSearchResult) {
-				$message = sprintf(PHPCHECKSTYLE_USE_STRICT_COMPARE, $text);
-				$this->_writeError('strictCompare', $message);
-			}
+			$message = sprintf(PHPCHECKSTYLE_USE_STRICT_COMPARE, $text);
+			$this->_writeError('strictCompare', $message);
 		}
 	}
 
@@ -2362,23 +2341,13 @@ class PHPCheckstyle {
 					|| $nextTokenText == ">>="
 					|| $nextTokenText == ".=");
 
-			// Check the following token
-			$isSearchResult = false;
-			if ($this->_isActive('strictCompare')) {
-				$nextTokenInfo2 = $this->tokenizer->peekNextValidToken($nextTokenInfo->position + 1);
-				if ($nextTokenInfo2 != null) {
-					$nextTokenText2 = $nextTokenInfo2->text;
-					$isSearchResult = in_array($nextTokenText2, $this->_config->getTestItems('strictCompare'));
-				}
-			}
-
+			
 			// Check if the variable has already been met
 			if (empty($this->_variables[$text]) && !in_array($text, $this->_systemVariables)) {
 				// The variable is met for the first time
 				$variable = new VariableInfo();
 				$variable->name = $text;
 				$variable->line = $this->lineNumber; // We store the first declaration of the variable
-				$variable->isSearchResult = $isSearchResult;
 				$this->_variables[$text] = $variable;
 
 			} else if ($isAffectation) {
@@ -3063,6 +3032,20 @@ class PHPCheckstyle {
 			}
 		}
 	}
+	
+	/**
+	 * Check for prohibited functions.
+	 *
+	 * @param String $functionName The function name
+	 */
+	private function _checkProhibitedFunctions($functionName) {
+		if ($this->_isActive('checkProhibitedFunctions')) {
+			if (in_array($functionName, $this->_prohibitedFunctions)) {
+				$msg = sprintf(PHPCHECKSTYLE_PROHIBITED_FUNCTION, $functionName);
+				$this->_writeError('checkProhibitedFunctions', $msg);
+			}
+		}
+	}
 
 	/**
 	 * Check for aliased functions.
@@ -3179,4 +3162,45 @@ class PHPCheckstyle {
 		$this->_reporter->writeError($lineNumber, $check, $message, $level);
 	}
 
+	
+	/**
+	 * Process a PHP Open Tag.
+	 * 
+	 * @param TokenInfo $token the control statement.
+	 */
+	private function _processOpenTag($token) {
+		
+		// Check for short open tag
+		$this->_checkShortOpenTag($token);
+		
+		// Check that the tag is at the beginning of the line
+		$this->_checkPhpTagsStartLine($token);
+	}
+	
+	/**
+	 * Process a PHP Close Tag.
+	 *
+	 * @param TokenInfo $token the control statement.
+	 */
+	private function _processCloseTag($token) {
+		
+		// Check that the tag is at the beginning of the line
+		$this->_checkPhpTagsStartLine($token);
+		
+	}
+	
+	/**
+	 * Check that the PHP oOpen or Close tag is at the beginning of the line..
+	 *
+	 * @param TokenInfo $token
+	 */
+	private function _checkPhpTagsStartLine($token) {
+
+		if ($this->_isActive('phpTagsStartLine')) {
+			if (!$this->_isLineStart) {
+				$this->_writeError('phpTagsStartLine', PHPCHECKSTYLE_PHP_TAGS_START_LINE);
+			}
+		}
+	}
+	
 }

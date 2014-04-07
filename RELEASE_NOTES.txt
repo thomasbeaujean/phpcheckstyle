@@ -1,5 +1,20 @@
                          PHPCheckstyle Release Notes
                          ===========================
+Version 0.13.1
+--------------
+* Issue 71:	False positive : close()
+* Issue 72: Allow the config file to be in any directory
+* Issue 73:	False positive : delete()
+* Issue 74: Allow multiple src directories/files in the command line.
+            
+Version 0.13.0
+--------------
+* Issue 70: Simplification of the "strictCompare" rule. When active this rule will be checked everywhere. 
+            This may generate lots of warnings. 
+
+Version 0.12.5
+--------------
+* Issue 69: PHP tag should be at the beginning of the line
 
 Version 0.12.4
 --------------

@@ -66,7 +66,7 @@ define("PHPCHECKSTYLE_MISSING_DOCBLOCK", "The %s %s must have a docblock comment
 
 define("PHPCHECKSTYLE_LONG_LINE", "Line length (%s characters) must not exceed %s characters.");
 
-define("PHPCHECKSTYLE_PROHIBITED_FUNCTION", "Function %s must not be called.");
+define("PHPCHECKSTYLE_PROHIBITED_FUNCTION", "PHP Function %s must not be called.");
 
 define("PHPCHECKSTYLE_PROHIBITED_TOKEN", "Token %s must not be used.");
 
@@ -142,6 +142,8 @@ define("PHPCHECKSTYLE_ALIASED_FUNCTION", "%s is an alias, consider replacing wit
 
 define("PHPCHECKSTYLE_REPLACED", "Consider replacing %s with %s.");
 
-define("PHPCHECKSTYLE_USE_STRICT_COMPARE", "Please check is you should not use a strict comparison operator instead of %s.");
+define("PHPCHECKSTYLE_USE_STRICT_COMPARE", "Consider using a strict comparison operator instead of %s.");
 
 define("PHPCHECKSTYLE_EMPTY_FILE", "The file %s is empty.");
+
+define("PHPCHECKSTYLE_PHP_TAGS_START_LINE", "PHP tag should be at the beginning of the line.");

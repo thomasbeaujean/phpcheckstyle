@@ -29,7 +29,7 @@
 		<property name="dist.dir" value="${build.dir}/dist" />
 
 		<property name="phpcheckstyle.version.major" value="0" />
-		<property name="phpcheckstyle.version.minor" value="12.4" />
+		<property name="phpcheckstyle.version.minor" value="13.1" />
 		<property name="phpcheckstyle.version" value="${phpcheckstyle.version.major}.${phpcheckstyle.version.minor}" />
 
 		<property name="phpcheckstyle.name" value="PHPCheckStyle-${phpcheckstyle.version}.zip" />
@@ -70,7 +70,7 @@
 			<!-- Override the version number -->
 			<filterchain>
 				<tokenfilter>
-					<replaceregex pattern="@version 0.12.4
+					<replaceregex pattern="@version 0.13.1
 				</tokenfilter>
 			</filterchain>
 

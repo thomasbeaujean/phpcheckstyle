@@ -66,7 +66,7 @@
     <test name="protectedFunctionNaming" regexp="/^[a-z][a-zA-Z0-9]*$/" level="error"/>
         
     <!-- Check Private Function Naming -->
-    <test name="privateFunctionNaming" regexp="/^_[a-z][a-zA-Z0-9]*$/" level="error"/>
+    <test name="privateFunctionNaming" regexp="/^[a-z][a-zA-Z0-9]*$/" level="error"/>
         
     <!-- Checks the constuctor naming -->
     <!-- old = old style (constructor = name of the class) -->

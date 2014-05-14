@@ -203,7 +203,7 @@
     
     <!--  Checks for excessive parameters in a function declaration -->
     <test name="functionMaxParameters">
-        <property name="maxParameters" value="4"/>
+        <property name="maxParameters" value="6"/>
     </test>
     
     <!-- Check Cyclomatic Complexity -->

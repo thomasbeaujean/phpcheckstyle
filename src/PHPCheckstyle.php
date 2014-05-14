@@ -140,7 +140,7 @@ class PHPCheckstyle {
 	 * These functions are aliased.
 	*/
 	private $_aliasedFunctions = array();
-	
+
 	/**
 	 * These tokens are replaced.
 	 */
@@ -197,7 +197,7 @@ class PHPCheckstyle {
 	 * @access public
 	 */
 	public function PHPCheckstyle($formats, $outDir, $configFile, $linecountfile = null, $debug = false, $progress = false) {
-	
+
 		// Initialise the Tokenizer
 		$this->tokenizer = new Tokenizer();
 
@@ -254,15 +254,15 @@ class PHPCheckstyle {
 
 		// Load the list of aliased functions
 		$this->_aliasedFunctions = $this->_config->getTestAliases('checkAliases');
-		
+
 		// Load the list of replacements
 		$this->_replacements = $this->_config->getTestReplacements('checkReplacements');
 
 	}
-	
+
 	/**
 	 * Custom Error Handler.
-	 * 
+	 *
 	 * @param Integer $errno Level of the error
 	 * @param String $errstr Error message
 	 * @return boolean
@@ -275,11 +275,11 @@ class PHPCheckstyle {
 			$level = "warning";
 		}
 		$message = sprintf(PHPCHECKSTYLE_PHP_EXPCEPTION, $errstr);
-		
+
 		$this->_reporter->writeError($this->lineNumber, $check, $message, $level);
-		
+
 		/* Don't execute PHP internal error handler */
-		return false;  
+		return false;
 	}
 
 	/**
@@ -292,14 +292,14 @@ class PHPCheckstyle {
 	 *        excluded from processing.
 	 */
 	public function processFiles($sources, $excludes) {
-		
+
 		// Start reporting the results
 		$this->_reporter->start();
-		
+
 		// Define the custom error handler
 		set_error_handler(array($this, 'customErrorHandler'), E_ALL);
 		set_exception_handler(array($this, 'customErrorHandler'));
-		
+
 		$this->_excludeList = $excludes;
 
 		$files = array();
@@ -311,7 +311,7 @@ class PHPCheckstyle {
 				$files = array_merge($files, $this->_getAllPhpFiles($root, $excludes));
 			}
 		}
-		
+
 
 		// Start counting the lines
 		if ($this->_lineCountReporter != null) {
@@ -330,12 +330,12 @@ class PHPCheckstyle {
 
 
 			$this->_reporter->currentlyProcessing($file);
-			
+
 			try {
 				$this->_processFile($file);
 			} catch (Exception $e) {
 				$msg = sprintf(PHPCHECKSTYLE_PHP_EXPCEPTION, $e->getMessage());
-				$this->_writeError('phpException', $msg);				
+				$this->_writeError('phpException', $msg);
 			}
  		}
 
@@ -375,7 +375,7 @@ class PHPCheckstyle {
 		$this->inDoWhile = false;
 
 		$this->statementStack = new StatementStack();
-		
+
 		$this->_inString = false;
 		$this->_inControlStatement = false;
 		$this->_inArrayStatement = false;
@@ -421,7 +421,7 @@ class PHPCheckstyle {
 		$this->_isModel = false;
 		$this->_isController = false;
 		$this->_isClass = false;
-		
+
 		$this->_isLineStart = true;
 	}
 
@@ -463,14 +463,14 @@ class PHPCheckstyle {
 		$this->tokenizer->tokenize($filename);
 
 		// Empty PHP file
-		if ($this->tokenizer->getTokenNumber() == 0) {			
-			$this->_checkEmptyFile($filename);			
+		if ($this->tokenizer->getTokenNumber() == 0) {
+			$this->_checkEmptyFile($filename);
 			return;  // end the scan
 		}
-		
+
 		// Go to the first token
 		$token = $this->tokenizer->getCurrentToken();
-		
+
 		// Run through every token of the file
 		while ($token !== false) {
 
@@ -535,7 +535,7 @@ class PHPCheckstyle {
 
 		$files = array();
 		if (!is_dir($src)) {
-				
+
 			// Source is a file
 			$isExcluded = false;
 			foreach ($excludes as $patternExcluded) {
@@ -623,7 +623,7 @@ class PHPCheckstyle {
 			case T_OPEN_TAG:
 				$this->_processOpenTag($token);
 				break;
-				
+
 			case T_CLOSE_TAG:
 				$this->_processCloseTag($token);
 				break;
@@ -883,7 +883,7 @@ class PHPCheckstyle {
 				// whitespace after (exept for Assign By Reference)
 				if (!$this->tokenizer->checkNextToken(T_AMPERSAND)) {
 					$this->_checkWhiteSpaceAfter($token->text);
-				}				
+				}
 				break;
 
 			case T_COMMA:
@@ -921,7 +921,7 @@ class PHPCheckstyle {
 				break;
 			case T_QUOTE:
 				$this->_inString = !$this->_inString;
-				break;				
+				break;
 			default:
 				break;
 		}
@@ -1335,24 +1335,24 @@ class PHPCheckstyle {
 
 			// Add the function name to the list of used functions
 			$this->_usedFunctions[$text] = $text;
-			
+
 			// Check if the function call is made on an objet of if it's a base PHP function.
 			$isObjectCall = $this->tokenizer->checkPreviousToken(T_OBJECT_OPERATOR);
-			
+
 			if (!$isObjectCall) {
 
 			// Detect prohibited functions
 			$this->_checkProhibitedFunctions($text);
-			
+
 			// Detect deprecated functions
 			$this->_checkDeprecation($text);
 
 			// Detect aliased functions
 			$this->_checkAliases($text);
-			
+
 			// Detect replaced functions
 			$this->_checkReplacements($text);
-			
+
 			}
 
 			// Detect an @ before the function call
@@ -1434,7 +1434,7 @@ class PHPCheckstyle {
 		if ($token->id == T_ELSE || $token->id == T_ELSEIF) {
 			$position = $this->_config->getTestProperty('controlStructElse', 'position');
 			$previousToken = $this->tokenizer->peekPrvsValidToken();
-			if ($previousToken->id  == T_BRACES_CLOSE) {  
+			if ($previousToken->id  == T_BRACES_CLOSE) {
 				if (($position == SAME_LINE) && ($previousToken->line != $token->line)) {
 					$msg = sprintf(PHPCHECKSTYLE_CS_STMT_ALIGNED_WITH_CURLY, $csText);
 					$this->_writeError('controlStructElse', $msg);
@@ -1445,8 +1445,8 @@ class PHPCheckstyle {
 				}
  			}
 		}
-		
-		// The checkNeedBraces rule is usually launched after a closing parenthesis 
+
+		// The checkNeedBraces rule is usually launched after a closing parenthesis
 		// In the case of the "else", we need to launch it now
 		if ($token->id == T_ELSE) {
 			$this->_checkNeedBraces();
@@ -1655,12 +1655,12 @@ class PHPCheckstyle {
 	 * Called by _processFunctionStop().
 	 */
 	private function _checkDocBlockParameters() {
-		
+
 		// List of function names that we don't check
 		$exceptions = $this->_config->getTestExceptions('docBlocks');
 
 		// For anonymous functions, we don't check the docblock
-		if ($this->_isActive('docBlocks') 
+		if ($this->_isActive('docBlocks')
 			&& $this->statementStack->getCurrentStackItem()->visibility != 'ANONYMOUS'
 			&& (empty($exceptions) || !in_array($this->_currentFunctionName, $exceptions))) {
 
@@ -1725,7 +1725,7 @@ class PHPCheckstyle {
 	 * Process the end of a function declaration.
 	 */
 	private function _processFunctionStop() {
-		
+
 		$this->_inFunction = false; // We are out of the function
 
 		// Check the cyclomatic complexity
@@ -1910,15 +1910,15 @@ class PHPCheckstyle {
 		// If we already are in a "case", we remove it from the stack
 		if ($this->statementStack->getCurrentStackItem()->type == "CASE" ||
 			$this->statementStack->getCurrentStackItem()->type == "DEFAULT") {
-			
+
 			// Test if the previous case had a break
 			$this->_checkSwitchCaseNeedBreak();
-			
+
 			$this->statementStack->pop();
 		}
-		
+
 		$this->_checkSwitchNeedDefault();
-		
+
 	}
 
 	/**
@@ -1939,21 +1939,21 @@ class PHPCheckstyle {
 	 * Process a case statement.
 	 */
 	private function _processSwitchCase() {
-		
-		// If we already are in a "case", we remove it from the stack 
+
+		// If we already are in a "case", we remove it from the stack
 		if ($this->statementStack->getCurrentStackItem()->type == "CASE" ||
 			$this->statementStack->getCurrentStackItem()->type == "DEFAULT") {
-			
+
 			// Test if the previous case had a break
 			$this->_checkSwitchCaseNeedBreak();
-			
+
 			$this->statementStack->pop();
 		}
-		
+
 		// If the case arrives after the default
 		$this->_checkSwitchDefaultOrder();
-		
-		
+
+
 		// We store the control statement in the stack
 		$stackitem = new StatementItem();
 		$stackitem->line = $this->lineNumber;
@@ -1961,7 +1961,7 @@ class PHPCheckstyle {
 		$stackitem->name = "case";
 		$this->statementStack->push($stackitem);
 
-				
+
 		// For this case
 		$this->statementStack->getCurrentStackItem()->caseHasBreak = false;
 		$this->statementStack->getCurrentStackItem()->caseStartLine = $this->lineNumber;
@@ -1989,7 +1989,7 @@ class PHPCheckstyle {
 	private function _checkSwitchCaseNeedBreak() {
 
 		$stackItem = $this->statementStack->getCurrentStackItem();
-		
+
 		// Test if the previous case had a break
 		if ($this->_isActive('switchCaseNeedBreak') && $stackItem->type == "CASE" && !$stackItem->caseHasBreak) {
 			// Direct call to reporter to include a custom line number.
@@ -2001,35 +2001,35 @@ class PHPCheckstyle {
 	 * Process a default statement.
 	 */
 	private function _processSwitchDefault() {
-		
+
 		// If we already are in a "case", we remove it from the stack
 		if ($this->statementStack->getCurrentStackItem()->type == "CASE" ||
 			$this->statementStack->getCurrentStackItem()->type == "DEFAULT") {
-			
+
 			// Test if the previous case had a break
 			$this->_checkSwitchCaseNeedBreak();
-			
+
 			$this->statementStack->pop();
 		}
-		
+
 		// We flag the "SWITCH" stack item as having a default
 		$this->statementStack->getCurrentStackItem()->switchHasDefault = true;
-		
+
 		// We store the control statement in the stack
 		$stackitem = new StatementItem();
 		$stackitem->line = $this->lineNumber;
 		$stackitem->type = "DEFAULT";
 		$stackitem->name = "default";
 		$this->statementStack->push($stackitem);
-		
-		
+
+
 	}
 
 	/**
 	 * Process a break statement.
 	 */
 	private function _processSwitchBreak() {
-		
+
 		$this->statementStack->getCurrentStackItem()->caseHasBreak = true;
 	}
 
@@ -2162,7 +2162,7 @@ class PHPCheckstyle {
 	 * @param String $text the comparison operator used
 	 */
 	private function _checkStrictCompare($text) {
-		
+
 		if ($this->_isActive('strictCompare')) {
 			$message = sprintf(PHPCHECKSTYLE_USE_STRICT_COMPARE, $text);
 			$this->_writeError('strictCompare', $message);
@@ -2311,7 +2311,7 @@ class PHPCheckstyle {
 
 		// Check if the variable is not a deprecated system variable
 		$this->_checkDeprecation($text);
-		
+
 		// Check if the variable is not replaced
 		$this->_checkReplacements($text);
 
@@ -2341,7 +2341,7 @@ class PHPCheckstyle {
 					|| $nextTokenText == ">>="
 					|| $nextTokenText == ".=");
 
-			
+
 			// Check if the variable has already been met
 			if (empty($this->_variables[$text]) && !in_array($text, $this->_systemVariables)) {
 				// The variable is met for the first time
@@ -2652,6 +2652,11 @@ class PHPCheckstyle {
 	 * @param String $indentationNumber the expected number of whitespaces used for indentation
 	 */
 	private function _checkIndentationLevel($whitespaceString, $indentationNumber) {
+		//MODIFICATION THOMAS
+        //do not check in function statement
+        if ($this->_inFunctionStatement) {
+            return;
+        }
 
 		//doesn't work if we are not in a class
 		if (!$this->_inClass) {
@@ -2732,7 +2737,7 @@ class PHPCheckstyle {
 					$this->_writeError('needBraces', $msg);
 				}
 			}
-			
+
 			if ($stmt == "while") {
 				$this->statementStack->getCurrentStackItem()->afterDoStatement = false;
 			}
@@ -3032,7 +3037,7 @@ class PHPCheckstyle {
 			}
 		}
 	}
-	
+
 	/**
 	 * Check for prohibited functions.
 	 *
@@ -3062,7 +3067,7 @@ class PHPCheckstyle {
 			}
 		}
 	}
-	
+
 	/**
 	 * Check for replaced functions.
 	 *
@@ -3070,7 +3075,7 @@ class PHPCheckstyle {
 	 */
 	private function _checkReplacements($text) {
 		if ($this->_isActive('checkReplacements')) {
-	
+
 			$key = strtolower($text);
 			if (array_key_exists($key, $this->_replacements)) {
 				$msg = sprintf(PHPCHECKSTYLE_REPLACED, $this->_replacements[$key]['old'], $this->_replacements[$key]['new']);
@@ -3129,10 +3134,10 @@ class PHPCheckstyle {
 
 		return $active;
 	}
-	
+
 	/**
 	 * Check for empty PHP files.
-	 * 
+	 *
 	 * @param String $fileName the file name
 	 */
 	private function _checkEmptyFile($fileName) {
@@ -3162,33 +3167,33 @@ class PHPCheckstyle {
 		$this->_reporter->writeError($lineNumber, $check, $message, $level);
 	}
 
-	
+
 	/**
 	 * Process a PHP Open Tag.
-	 * 
+	 *
 	 * @param TokenInfo $token the control statement.
 	 */
 	private function _processOpenTag($token) {
-		
+
 		// Check for short open tag
 		$this->_checkShortOpenTag($token);
-		
+
 		// Check that the tag is at the beginning of the line
 		$this->_checkPhpTagsStartLine($token);
 	}
-	
+
 	/**
 	 * Process a PHP Close Tag.
 	 *
 	 * @param TokenInfo $token the control statement.
 	 */
 	private function _processCloseTag($token) {
-		
+
 		// Check that the tag is at the beginning of the line
 		$this->_checkPhpTagsStartLine($token);
-		
+
 	}
-	
+
 	/**
 	 * Check that the PHP oOpen or Close tag is at the beginning of the line..
 	 *
@@ -3202,5 +3207,5 @@ class PHPCheckstyle {
 			}
 		}
 	}
-	
+
 }

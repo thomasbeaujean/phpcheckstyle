@@ -2680,6 +2680,7 @@ class PHPCheckstyle {
 				$nesting--;
 			}
 
+
 			$expectedIndentation = $nesting * $indentationNumber;
 			$indentation = strlen($whitespaceString);
 			if ($previousToken->id != T_NEW_LINE) {
@@ -2701,6 +2702,15 @@ class PHPCheckstyle {
 				if ($this->tokenizer->checkNextValidToken(T_BRACES_OPEN) || $this->tokenizer->checkNextValidToken(T_BRACES_CLOSE)) {
 					return;
 				}
+			} else {
+			    //MODIFICATION THOMAS
+     			if ($this->tokenizer->checkNextToken(T_CASE) || $this->tokenizer->checkNextToken(T_DEFAULT)) {
+     			    $expectedIndentation = $expectedIndentation - $indentationNumber;
+     			} else {
+     			    if ($this->tokenizer->checkNextValidToken(T_BRACES_CLOSE)) {
+     			        return;
+     			    }
+     			}
 			}
 
 			// the indentation is almost free if it is a multiligne array

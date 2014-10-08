@@ -115,6 +115,9 @@ foreach ($options['src'] as $index => $src) {
 	if (strpos($src,"/vendor/") !== false) {
 	    unset($options['src'][$index]);
 	}
+	if (strpos($src,"/app/cache/") !== false) {
+	    unset($options['src'][$index]);
+	}
 }
 if (is_array($options['src'])) {
 	if (count($options['src']) === 0) {

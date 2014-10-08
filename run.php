@@ -2,7 +2,7 @@
 <?php
 /**
  *  CLI file to run the PHPCheckstyle
- *  
+ *
  *  @version 0.13.1
  */
 function usage() {
@@ -107,6 +107,19 @@ if ($options['src'] == false) {
 
 if (!empty($options['linecount'])) {
 	$lineCountFile = "ncss.xml";
+}
+
+
+foreach ($options['src'] as $index => $src) {
+	//the vendors must not be validated
+	if (strpos($src,"/vendor/") !== false) {
+	    unset($options['src'][$index]);
+	}
+}
+if (is_array($options['src'])) {
+	if (count($options['src']) === 0) {
+		exit(0);
+	}
 }
 
 $style = new PHPCheckstyle($formats, $options['outdir'], $options['config'], $lineCountFile, $options['debug'], $options['progress']);
